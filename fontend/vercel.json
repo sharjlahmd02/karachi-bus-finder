@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://karachi-bus-finder.onrender.com/api/:path*"
+    }
+  ]
+}
