@@ -11,9 +11,9 @@ const SERVICES = [
   {
     type: 'local',
     name: 'Local Buses',
-    description: 'Minibuses, coaches',
-    color: '#6B7178',
-    available: false,
+    description: 'Minibuses, coaches, routes across Karachi',
+    color: '#FF9800',
+    available: true,
   },
 ]
 

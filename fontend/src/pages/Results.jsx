@@ -6,7 +6,7 @@ import Card, { CardSection } from '../components/Card'
 import { Badge, StatusBadge } from '../components/Badge'
 import EmptyState from '../components/EmptyState'
 
-const ROUTE_COLORS = {
+const PBS_COLORS = {
   'pbs-R1': '#E91E63',
   'pbs-R2': '#E91E63',
   'pbs-R3': '#E91E63',
@@ -24,6 +24,23 @@ const ROUTE_COLORS = {
   'pbs-EV5': '#4CAF50',
   'pbs-BRT-Green': '#4CAF50',
   'pbs-BRT-Orange': '#FF9800',
+}
+
+const LOCAL_PALETTE = [
+  '#E91E63', '#1D4E89', '#4CAF50', '#FF9800', '#9C27B0',
+  '#00BCD4', '#FF5722', '#607D8B', '#795548', '#3F51B5',
+]
+
+function getRouteColor(code) {
+  if (PBS_COLORS[code]) return PBS_COLORS[code]
+  if (code.startsWith('local-')) {
+    let hash = 0
+    for (let i = 0; i < code.length; i++) {
+      hash = code.charCodeAt(i) + ((hash << 5) - hash)
+    }
+    return LOCAL_PALETTE[Math.abs(hash) % LOCAL_PALETTE.length]
+  }
+  return '#1D4E89'
 }
 
 function getSegmentStops(orderedStops, pickupId, destinationId) {
@@ -96,7 +113,7 @@ function Results() {
   if (!routes.length && !pickup && !destination) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <BackLink to="/search" label="Back to search" />
+        <BackLink to="/" label="Back to search" />
         <EmptyState
           icon={
             <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -132,7 +149,7 @@ function Results() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <BackLink to="/search" label="Back to search" />
+      <BackLink to="/" label="Back to search" />
 
       {(pickupPlace || destinationPlace) && (
         <Card>
@@ -229,7 +246,7 @@ function Results() {
         <div className="space-y-3">
           {sortedRoutes.map((route, index) => {
             const isExpanded = expandedRoute === route.code
-            const color = ROUTE_COLORS[route.code] || '#1D4E89'
+            const color = getRouteColor(route.code)
             const isRecommended = index === 0
 
             const nearestStopCoords = route.nearestStop?.location?.coordinates
@@ -284,7 +301,7 @@ function Results() {
                 <div className="p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Badge color={color}>{route.code.replace('pbs-', '')}</Badge>
+                      <Badge color={color}>{route.code.replace(/^(pbs|local)-/, '')}</Badge>
                       {route.routeType && (
                         <StatusBadge variant="primary">{route.routeType}</StatusBadge>
                       )}

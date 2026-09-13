@@ -20,6 +20,7 @@ function Search() {
   const navigate = useNavigate()
   const location = useLocation()
   const serviceType = location.state?.serviceType || 'pbs'
+  const serviceLabel = serviceType === 'local' ? 'Local Buses' : 'Public Bus Service'
 
   const [pickupLocation, setPickupLocation] = useState(null)
   const [destinationLocation, setDestinationLocation] = useState(null)
@@ -81,7 +82,7 @@ function Search() {
 
   return (
     <div className="space-y-5 animate-fade-in">
-      <BackLink to="/" label="Public Bus Service" />
+      <BackLink to="/" label={serviceLabel} />
 
       <div className="space-y-1">
         <h1 className="text-[22px] leading-[28px] font-semibold tracking-tight text-ink">
