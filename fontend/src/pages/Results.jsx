@@ -134,51 +134,63 @@ function Results() {
     <div className="space-y-6 animate-fade-in">
       <BackLink to="/search" label="Back to search" />
 
-      {(pickupPlace || destinationPlace) && bestRoute && (
+      {(pickupPlace || destinationPlace) && (
         <Card>
-          <CardSection>
-            <div className="flex gap-3.5">
-              <div className="flex flex-col items-center pt-1">
-                <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-ink" />
-                <span className="mt-1 w-px flex-1 bg-line" />
-              </div>
-              <div className="min-w-0 flex-1 pb-1">
-                <div className="truncate text-[15px] leading-[20px] text-ink">
-                  {pickupPlace.name}
+          {pickupPlace && (
+            <CardSection>
+              <div className="flex gap-3.5">
+                <div className="flex flex-col items-center pt-1">
+                  <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-ink" />
+                  <span className="mt-1 w-px flex-1 bg-line" />
                 </div>
-                <div className="mt-1 text-[13px] leading-[18px] text-muted">
-                  Board at: <span className="font-medium text-ink">{bestRoute.nearestStop?.name}</span>
-                  {bestRoute.nearestStopDistance != null && (
-                    <span className="ml-1.5 inline-flex items-center gap-1 text-transit-blue">
-                      <WalkIcon />
-                      {formatDistance(bestRoute.nearestStopDistance)}
-                    </span>
+                <div className="min-w-0 flex-1 pb-1">
+                  <div className="text-[12px] uppercase tracking-wider text-muted/70">From</div>
+                  <div className="mt-0.5 truncate text-[15px] leading-[20px] text-ink">
+                    {pickupPlace.name}
+                  </div>
+                  {bestRoute?.nearestStop && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] leading-[18px]">
+                      <span className="text-muted">Bus stop:</span>
+                      <span className="font-medium text-ink">{bestRoute.nearestStop.name}</span>
+                      {bestRoute.nearestStopDistance != null && (
+                        <span className="inline-flex items-center gap-1 text-transit-blue">
+                          <WalkIcon />
+                          {formatDistance(bestRoute.nearestStopDistance)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-          </CardSection>
-          <CardSection bordered>
-            <div className="flex gap-3.5">
-              <div className="flex flex-col items-center pt-1">
-                <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-transit-blue" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[15px] leading-[20px] text-ink">
-                  {destinationPlace.name}
+            </CardSection>
+          )}
+          {destinationPlace && (
+            <CardSection bordered={!!pickupPlace}>
+              <div className="flex gap-3.5">
+                <div className="flex flex-col items-center pt-1">
+                  <span className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-transit-blue" />
                 </div>
-                <div className="mt-1 text-[13px] leading-[18px] text-muted">
-                  Get off at: <span className="font-medium text-ink">{bestRoute.destinationStop?.name}</span>
-                  {bestRoute.destinationStopDistance != null && (
-                    <span className="ml-1.5 inline-flex items-center gap-1 text-transit-blue">
-                      <WalkIcon />
-                      {formatDistance(bestRoute.destinationStopDistance)}
-                    </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[12px] uppercase tracking-wider text-muted/70">To</div>
+                  <div className="mt-0.5 truncate text-[15px] leading-[20px] text-ink">
+                    {destinationPlace.name}
+                  </div>
+                  {bestRoute?.destinationStop && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] leading-[18px]">
+                      <span className="text-muted">Bus stop:</span>
+                      <span className="font-medium text-ink">{bestRoute.destinationStop.name}</span>
+                      {bestRoute.destinationStopDistance != null && (
+                        <span className="inline-flex items-center gap-1 text-transit-blue">
+                          <WalkIcon />
+                          {formatDistance(bestRoute.destinationStopDistance)}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
-            </div>
-          </CardSection>
+            </CardSection>
+          )}
         </Card>
       )}
 
@@ -203,7 +215,7 @@ function Results() {
             </svg>
           }
           title="No routes found"
-          description="There are no direct bus routes between these stops. Try different locations or check back later."
+          description="There are no direct bus routes between these locations. Try different places."
           action={
             <button
               onClick={() => navigate('/search', { state: { serviceType } })}
@@ -238,12 +250,7 @@ function Results() {
               destStopCoords
                 ? route.destinationStopDistance != null
                   ? route.destinationStopDistance
-                  : destinationPlace
-                    ? haversineDistance(
-                        [destinationPlace.lat, destinationPlace.lng],
-                        [destStopCoords[1], destStopCoords[0]]
-                      )
-                    : null
+                  : null
                 : null
 
             const mapsLink =
@@ -285,7 +292,7 @@ function Results() {
                     <div className="flex items-center gap-2">
                       {totalWalk > 0 && (
                         <span className="text-[12px] text-muted">
-                          ~{formatDistance(totalWalk)} total walk
+                          ~{formatDistance(totalWalk)} walk
                         </span>
                       )}
                       {isRecommended && (
@@ -341,7 +348,7 @@ function Results() {
                       className="mt-3.5 inline-flex items-center gap-1.5 text-[13px] font-medium text-transit-blue transition-colors hover:underline"
                     >
                       <PinIcon />
-                      Walking directions to {route.nearestStop?.name}
+                      Walk to {route.nearestStop?.name}
                     </a>
                   )}
                 </div>
@@ -350,7 +357,7 @@ function Results() {
                   onClick={() => toggleExpand(route.code)}
                   className="flex w-full items-center justify-between border-t border-line px-4 py-3 text-left text-[13px] font-medium text-muted transition-colors hover:bg-paper"
                 >
-                  {isExpanded ? 'Hide stops' : `Show all ${segmentStops.length} stops on this route`}
+                  {isExpanded ? 'Hide route stops' : `Show all ${segmentStops.length} stops`}
                   <ChevronDownIcon open={isExpanded} />
                 </button>
 
@@ -364,10 +371,7 @@ function Results() {
                         const isLast = i === segmentStops.length - 1
 
                         return (
-                          <li
-                            key={stop._id}
-                            className="flex items-start gap-3"
-                          >
+                          <li key={stop._id} className="flex items-start gap-3">
                             <div className="flex flex-col items-center pt-[5px]">
                               <span
                                 className={`h-2 w-2 flex-shrink-0 rounded-full ${

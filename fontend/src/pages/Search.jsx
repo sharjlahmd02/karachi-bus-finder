@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useRouteMatch } from '../hooks/useRouteMatch'
-import { validateMatchByCoordsForm } from '../utils/validation'
 import BackLink from '../components/BackLink'
 import Button from '../components/Button'
+import Card, { CardSection } from '../components/Card'
 import Alert from '../components/Alert'
-import MapPicker from '../components/MapPicker'
+import LocationSearch from '../components/LocationSearch'
 
 function SearchIcon() {
   return (
@@ -21,30 +21,39 @@ function Search() {
   const location = useLocation()
   const serviceType = location.state?.serviceType || 'pbs'
 
-  const [pickupStop, setPickupStop] = useState(null)
-  const [destinationStop, setDestinationStop] = useState(null)
-  const [userLocation, setUserLocation] = useState(null)
-  const [formErrors, setFormErrors] = useState({})
+  const [pickupLocation, setPickupLocation] = useState(null)
+  const [destinationLocation, setDestinationLocation] = useState(null)
+  const [userLatLng, setUserLatLng] = useState(null)
+  const [error, setError] = useState(null)
+
   const { findRoutesByCoords, loading: routeLoading, error: routeError } = useRouteMatch()
 
-  const handleFindRoutes = async () => {
-    const errors = validateMatchByCoordsForm(
-      pickupStop,
-      destinationStop,
-      serviceType
-    )
+  const handlePickupLocationFound = (loc) => {
+    if (loc.name === 'My current location') {
+      setUserLatLng({ lat: loc.lat, lng: loc.lng })
+    }
+  }
 
-    if (errors) {
-      setFormErrors(errors)
+  const handleFindRoutes = async () => {
+    if (!pickupLocation || !destinationLocation) {
+      setError('Please select both pickup and destination locations')
       return
     }
 
-    setFormErrors({})
+    if (
+      pickupLocation.lat === destinationLocation.lat &&
+      pickupLocation.lng === destinationLocation.lng
+    ) {
+      setError('Pickup and destination must be different locations')
+      return
+    }
+
+    setError(null)
     const data = await findRoutesByCoords(
-      pickupStop.lat,
-      pickupStop.lng,
-      destinationStop.lat,
-      destinationStop.lng,
+      pickupLocation.lat,
+      pickupLocation.lng,
+      destinationLocation.lat,
+      destinationLocation.lng,
       serviceType
     )
 
@@ -54,19 +63,21 @@ function Search() {
           routes: data.routes,
           pickup: data.pickupStop,
           destination: data.destinationStop,
-          pickupPlace: pickupStop,
-          destinationPlace: destinationStop,
+          pickupPlace: pickupLocation,
+          destinationPlace: destinationLocation,
           serviceType,
-          userLatLng: userLocation
-            ? [userLocation.lat, userLocation.lng]
-            : [pickupStop.lat, pickupStop.lng],
+          userLatLng: userLatLng
+            ? [userLatLng.lat, userLatLng.lng]
+            : [pickupLocation.lat, pickupLocation.lng],
         },
         replace: true,
       })
+    } else if (!routeError) {
+      setError('No routes found between these locations. Try different places.')
     }
   }
 
-  const hasBoth = pickupStop && destinationStop
+  const hasBoth = pickupLocation && destinationLocation
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -77,42 +88,35 @@ function Search() {
           Plan your trip
         </h1>
         <p className="text-[14px] leading-[20px] text-muted">
-          Pick your starting point and destination on the map, then select the nearest bus stop.
+          Enter where you are and where you're going. We'll find the nearest bus stops for you.
         </p>
       </div>
 
-      <div className="space-y-4">
-        <MapPicker
-          label="From"
-          serviceType={serviceType}
-          onSelect={setPickupStop}
-          selectedStop={pickupStop}
-          userLocation={userLocation}
-          onUserLocationDetected={setUserLocation}
-        />
+      <Card>
+        <CardSection>
+          <LocationSearch
+            label="From"
+            placeholder="Where are you starting from?"
+            value={pickupLocation}
+            onChange={setPickupLocation}
+            onLocationFound={handlePickupLocationFound}
+            userLatLng={userLatLng}
+          />
+        </CardSection>
 
-        <MapPicker
-          label="To"
-          serviceType={serviceType}
-          onSelect={setDestinationStop}
-          selectedStop={destinationStop}
-          userLocation={userLocation}
-        />
-      </div>
+        <CardSection bordered>
+          <LocationSearch
+            label="To"
+            placeholder="Where are you going?"
+            value={destinationLocation}
+            onChange={setDestinationLocation}
+            userLatLng={userLatLng}
+          />
+        </CardSection>
+      </Card>
 
-      {(formErrors.pickup || formErrors.destination) && (
-        <Alert type="error">
-          {formErrors.pickup || formErrors.destination}
-        </Alert>
-      )}
-
-      {routeError && (
-        <Alert type="error">{routeError}</Alert>
-      )}
-
-      {formErrors.serviceType && (
-        <Alert type="error">{formErrors.serviceType}</Alert>
-      )}
+      {error && <Alert type="error">{error}</Alert>}
+      {routeError && <Alert type="error">{routeError}</Alert>}
 
       <Button
         onClick={handleFindRoutes}
