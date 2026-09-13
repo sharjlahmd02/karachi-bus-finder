@@ -102,6 +102,7 @@ function Search() {
             onChange={setPickupLocation}
             onLocationFound={handlePickupLocationFound}
             userLatLng={userLatLng}
+            serviceType={serviceType}
           />
         </CardSection>
 
@@ -112,6 +113,7 @@ function Search() {
             value={destinationLocation}
             onChange={setDestinationLocation}
             userLatLng={userLatLng}
+            serviceType={serviceType}
           />
         </CardSection>
       </Card>
